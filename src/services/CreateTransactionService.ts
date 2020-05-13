@@ -1,15 +1,31 @@
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import Transaction from '../models/Transaction';
 
-class CreateTransactionService {
-  private transactionsRepository: TransactionsRepository;
+interface RequestDTO {
+  title: string;
+  value: number;
+  type: 'income' | 'outcome';
+}
 
-  constructor(transactionsRepository: TransactionsRepository) {
+class CreateTransactionService {
+  constructor(private transactionsRepository: TransactionsRepository) {
     this.transactionsRepository = transactionsRepository;
   }
 
-  public execute(): Transaction {
-    // TODO
+  public execute({ title, value, type }: RequestDTO): Transaction {
+    const { total } = this.transactionsRepository.getBalance();
+
+    if (type === 'outcome' && value > total) {
+      throw new Error('You do not have enough balance');
+    }
+
+    const transaction = this.transactionsRepository.create({
+      title,
+      value,
+      type,
+    });
+
+    return transaction;
   }
 }
 
